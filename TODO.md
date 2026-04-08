@@ -1,0 +1,1 @@
+# Task: Fix terminal errors (PostCSS/Tailwind config and Next.js deprecation)\n\n## Steps:\n- [x] Step 1: Edit postcss.config.mjs to fix Tailwind v4 plugins.\n- [ ] Step 2: Edit next.config.mjs to update images.remotePatterns.\n- [ ] Step 3: Test with `npm run build` and `npm run dev`.\n- [ ] Step 4: Complete task.
