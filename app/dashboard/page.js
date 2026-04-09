@@ -3,33 +3,62 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchNotes, deleteNote } from '@/store/slices/notesSlice';
+import { checkAuthStatus } from '@/store/slices/authSlice';
 import Navbar from '@/components/Navbar';
 import NoteCard from '@/components/NoteCard';
 import NoteEditor from '@/components/NoteEditor';
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
   const [selectedNote, setSelectedNote] = useState(null);
   const [showEditor, setShowEditor] = useState(false);
   
   const dispatch = useDispatch();
-  const { notes, isLoading } = useSelector((state) => state.notes);
-  const { user } = useSelector((state) => state.auth);
+  const router = useRouter();
+  const { notes, isLoading: notesLoading } = useSelector((state) => state.notes);
+  const { user, isCheckingAuth } = useSelector((state) => state.auth);
   
+  // Check authentication on page load
+  useEffect(() => {
+    dispatch(checkAuthStatus());
+  }, [dispatch]);
+  
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isCheckingAuth && !user) {
+      router.push('/login');
+    }
+  }, [isCheckingAuth, user, router]);
+  
+  // Fetch notes when user is authenticated
   useEffect(() => {
     if (user) {
       dispatch(fetchNotes());
     }
   }, [dispatch, user]);
   
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this note?')) {
-      await dispatch(deleteNote(id));
-    }
-  };
+  // Show loading while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
   
+  // Don't render anything if not authenticated (will redirect)
   if (!user) {
     return null;
   }
+  
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this note?')) {
+      dispatch(deleteNote(id));
+    }
+  };
   
   if (showEditor) {
     return (
@@ -64,7 +93,7 @@ export default function Dashboard() {
           </button>
         </div>
         
-        {isLoading ? (
+        {notesLoading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading notes...</p>
@@ -72,7 +101,7 @@ export default function Dashboard() {
         ) : notes.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow">
             <p className="text-gray-500 text-lg">No notes yet.</p>
-            <p className="text-gray-400 mt-2">Click &apos;New Note&apos; to create your first note!</p>
+            <p className="text-gray-400 mt-2">Click &quot;New Note&quot; to create your first note!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

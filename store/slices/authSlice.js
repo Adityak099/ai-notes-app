@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Helper to get base URL
 const getBaseUrl = () => {
   return typeof window !== 'undefined' ? '' : process.env.NEXTAUTH_URL;
 };
@@ -38,16 +37,32 @@ export const logout = createAsyncThunk(
   }
 );
 
+export const checkAuthStatus = createAsyncThunk(
+  'auth/checkAuthStatus',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${getBaseUrl()}/api/auth/me`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Authentication check failed');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
     user: null,
     isLoading: false,
+    isCheckingAuth: true,
     error: null,
   },
   reducers: {
     clearError: (state) => {
       state.error = null;
+    },
+    setUser: (state, action) => {
+      state.user = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -78,13 +93,26 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+      // Check auth status
+      .addCase(checkAuthStatus.pending, (state) => {
+        state.isCheckingAuth = true;
+      })
+      .addCase(checkAuthStatus.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.isCheckingAuth = false;
+      })
+      .addCase(checkAuthStatus.rejected, (state) => {
+        state.user = null;
+        state.isCheckingAuth = false;
+      })
       // Logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
+        state.isCheckingAuth = false;
         state.error = null;
       });
   },
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError, setUser } = authSlice.actions;
 export default authSlice.reducer;
