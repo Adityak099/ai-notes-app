@@ -1,7 +1,7 @@
 import { connectDB } from '@/lib/db';
 import Notes from '@/models/Notes';
 import { verifyToken } from '@/lib/auth';
-import { summarizeText } from '@/lib/openai';
+import { summarizeText } from '@/lib/gemini';
 import { NextResponse } from 'next/server';
 
 export async function POST(request, { params }) {

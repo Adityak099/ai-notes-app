@@ -9,6 +9,7 @@ export default function NoteEditor({ note, onClose }) {
   const [content, setContent] = useState(note?.content || '');
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState(note?.summary || '');
+  const [showFullSummary, setShowFullSummary] = useState(false);
   
   const dispatch = useDispatch();
   
@@ -76,6 +77,12 @@ export default function NoteEditor({ note, onClose }) {
             <div className="bg-blue-50 p-3 rounded-lg mb-3">
               <h3 className="font-semibold mb-1 text-blue-900">🤖 AI Summary</h3>
               <p className="text-sm text-blue-800">{summary}</p>
+              <button
+                onClick={() => setShowFullSummary(true)}
+                className="mt-3 text-sm font-medium text-blue-700 underline-offset-2 hover:underline"
+              >
+                View Full Summary
+              </button>
             </div>
           )}
           
@@ -99,6 +106,31 @@ export default function NoteEditor({ note, onClose }) {
           </div>
         </div>
       </div>
+
+      {showFullSummary && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Full Summary</h3>
+              <button
+                onClick={() => setShowFullSummary(false)}
+                className="text-2xl text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto rounded-lg bg-blue-50 p-4 text-sm leading-7 text-blue-900">
+              {summary}
+            </div>
+            <button
+              onClick={() => setShowFullSummary(false)}
+              className="mt-4 w-full rounded-lg bg-blue-500 py-2 text-white transition hover:bg-blue-600"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
